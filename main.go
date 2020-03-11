@@ -85,18 +85,18 @@ func getZoneID(client *route53.Route53, zoneName string) (string, error) {
 		return "", err
 	}
 
-	var zoneID *route53.HostedZone = nil
+	var hostedZone *route53.HostedZone = nil
 	for _, z := range zones.HostedZones {
 		if z.Name != nil && *z.Name == zoneName {
-			zoneID = z
+			hostedZone = z
 			break
 		}
 	}
 
-	if zoneID == nil || zoneID.Id == nil {
+	if hostedZone == nil || hostedZone.Id == nil {
 		return "", fmt.Errorf(fmt.Sprintf("Couldn't find %s zone.\n", zoneName))
 	}
-	return *zoneID.Id, nil
+	return *hostedZone.Id, nil
 }
 
 func deleteRecords(client *route53.Route53, zoneID *string, resourceRecordSets []*route53.ResourceRecordSet) error {
