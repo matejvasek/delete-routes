@@ -32,7 +32,7 @@ func main() {
 		return
 	}
 
-	zoneId, err := getZoneId(client, zoneName)
+	zoneID, err := getZoneID(client, zoneName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func main() {
 			*rrs.Type == route53.RRTypeA && re.MatchString(*rrs.Name)
 	}
 
-	resourceRecordSets, err := getRecords(client, aws.String(zoneId), isMatch)
+	resourceRecordSets, err := getRecords(client, aws.String(zoneID), isMatch)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,35 +71,35 @@ func main() {
 	}
 	if delete {
 		fmt.Println("deleting...")
-		err = deleteRecords(client, aws.String(zoneId), resourceRecordSets)
+		err = deleteRecords(client, aws.String(zoneID), resourceRecordSets)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func getZoneId(client *route53.Route53, zoneName string) (string, error) {
+func getZoneID(client *route53.Route53, zoneName string) (string, error) {
 
 	zones, err := client.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{DNSName: &zoneName})
 	if err != nil {
 		return "", err
 	}
 
-	var zoneId *route53.HostedZone = nil
+	var zoneID *route53.HostedZone = nil
 	for _, z := range zones.HostedZones {
 		if z.Name != nil && *z.Name == zoneName {
-			zoneId = z
+			zoneID = z
 			break
 		}
 	}
 
-	if zoneId == nil || zoneId.Id == nil {
+	if zoneID == nil || zoneID.Id == nil {
 		return "", fmt.Errorf(fmt.Sprintf("Couldn't find %s zone.\n", zoneName))
 	}
-	return *zoneId.Id, nil
+	return *zoneID.Id, nil
 }
 
-func deleteRecords(client *route53.Route53, zoneId *string, resourceRecordSets []*route53.ResourceRecordSet) error {
+func deleteRecords(client *route53.Route53, zoneID *string, resourceRecordSets []*route53.ResourceRecordSet) error {
 
 	changes := make([]*route53.Change, 0, 16)
 
@@ -112,7 +112,7 @@ func deleteRecords(client *route53.Route53, zoneId *string, resourceRecordSets [
 	}
 
 	changeResourceRecordSetsInput := route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: zoneId,
+		HostedZoneId: zoneID,
 		ChangeBatch:  &route53.ChangeBatch{Changes: changes},
 	}
 
@@ -124,7 +124,7 @@ func deleteRecords(client *route53.Route53, zoneId *string, resourceRecordSets [
 	return err
 }
 
-func getRecords(client *route53.Route53, zoneId *string, isMatch func(*route53.ResourceRecordSet) bool) ([]*route53.ResourceRecordSet, error) {
+func getRecords(client *route53.Route53, zoneID *string, isMatch func(*route53.ResourceRecordSet) bool) ([]*route53.ResourceRecordSet, error) {
 
 	result := make([]*route53.ResourceRecordSet, 0, 16)
 
@@ -137,7 +137,7 @@ func getRecords(client *route53.Route53, zoneId *string, isMatch func(*route53.R
 		return !isLastPage
 	}
 
-	err := client.ListResourceRecordSetsPages(&route53.ListResourceRecordSetsInput{HostedZoneId: zoneId}, onPage)
+	err := client.ListResourceRecordSetsPages(&route53.ListResourceRecordSetsInput{HostedZoneId: zoneID}, onPage)
 	if err != nil {
 		return nil, err
 	}
